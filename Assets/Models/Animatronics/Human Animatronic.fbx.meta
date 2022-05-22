@@ -21,6 +21,9 @@ ModelImporter:
   - first:
       74: 2662423323879665055
     second: Mech.005|Arm Out R.004
+  - first:
+      74: 8349542763059015795
+    second: Armature|Walk
   externalObjects:
   - first:
       type: UnityEngine:Material

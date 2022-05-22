@@ -6,9 +6,29 @@ public class StatTags : MonoBehaviour
 {
     public List<ItemTag> tags = new List<ItemTag>();
 
+    private void Start()
+    {
+        if (tags != null)
+        {
+            for (int i = 0; i < tags.Count; i++)
+            {
+                switch (tags[i].name)
+                {
+                    case "Name":
+                        this.name = tags[i].attribute;
+                        break;
+                    case "Weight":
+                        this.GetComponent<Rigidbody>().mass = float.Parse(tags[i].attribute);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+
     public void SetTag(ItemTag tag)
     {
-        Debug.Log("Set Tag " + tag.name + " - " + tag.attribute);
         bool found = false;
         if (tags != null)
         {
@@ -34,12 +54,7 @@ public class StatTags : MonoBehaviour
         this.SendMessage("TagsUpdated",SendMessageOptions.DontRequireReceiver);
     }
 
-    public class Item
-    {
-        public string itemName;
-        public List<ItemTag> tags;
-        public int amount;
-    }
+    [System.Serializable]
     public class ItemTag
     {
         public string name;

@@ -39,10 +39,10 @@ MonoBehaviour:
     m_Value: 0
   depthBufferThickness:
     m_OverrideState: 0
-    m_Value: 0.01
+    m_Value: 0.001
   screenFadeDistance:
     m_OverrideState: 0
-    m_Value: 0.1
+    m_Value: 0
   accumulationFactor:
     m_OverrideState: 0
     m_Value: 0.75

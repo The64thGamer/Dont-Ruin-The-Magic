@@ -24,11 +24,18 @@ public class Player : MonoBehaviour
     public Camera PlayerCamScript;
     public Image sprintBar;
     public Image sprintBar2;
+    public Image sprintBar3;
     public Image healthBar;
     public Image healthBar2;
     public Image cameraIcon;
     public Image cameraSpottedIcon;
     public GameObject camTracer;
+    PlayerInteractions playerInteractions;
+    public GameObject takeItem;
+    public TMP_Text takeItemText;
+    Inventory inventory;
+    public CanvasGroup inventoryScreen;
+
 
     //Position, Movement, Buttons
     [Tooltip("Initial Camera X position")]
@@ -152,6 +159,8 @@ public class Player : MonoBehaviour
     }
     void Awake()
     {
+        inventory = this.GetComponent<Inventory>();
+        playerInteractions = this.GetComponent<PlayerInteractions>();
         currentSprintTime = sprintTime;
         initialFallHeight = this.transform.position.y;
         DontDestroyOnLoad(this.gameObject);
@@ -197,7 +206,7 @@ public class Player : MonoBehaviour
         PlayerCamScript.transform.localPosition = new Vector3(PlayerCamScript.transform.localPosition.x, Mathf.Lerp(PlayerCamScript.transform.localPosition.y, camHeight, Time.deltaTime * 5), PlayerCamScript.transform.localPosition.z);
 
         //Camera Code
-        if (playerState != PlayerState.frozenCam && playerState != PlayerState.frozenAll && playerState != PlayerState.frozenAllUnlock && playerState != PlayerState.frozenCamUnlock)
+        if (playerState != PlayerState.frozenCam && playerState != PlayerState.frozenAll && playerState != PlayerState.frozenAllUnlock && playerState != PlayerState.frozenCamUnlock && playerInteractions.PickupCheck())
         {
             //Cam Zoom
             if (enableCamZoom)
@@ -269,13 +278,30 @@ public class Player : MonoBehaviour
         //FOV
         PlayerCamScript.fieldOfView = currentFOV + (sprintCrouchFOVAdder * sprintCrouchFOVFader);
 
-        //UI
-        float spr = sprintSpline.Evaluate(currentSprintTime / sprintTime);
+        //Health
         float hlth = healthSpline.Evaluate(health);
         healthBar.fillAmount = hlth;
         healthBar2.color = new Color(1, 1, 1, hlth);
-        sprintBar.fillAmount = spr;
-        sprintBar2.color = new Color(1,1,1,spr);
+
+        //Sprint
+        if(currentSprintTime == sprintTime)
+        {
+            sprintBar.color = new Color(1, 1, 1, Mathf.Max(0,sprintBar.color.a - Time.deltaTime * 10));
+            sprintBar2.color = new Color(1, 1, 1, Mathf.Max(0, sprintBar2.color.a - Time.deltaTime * 10));
+            sprintBar3.color = new Color(1, 1, 1, Mathf.Max(0, sprintBar3.color.a - Time.deltaTime * 10));
+        }
+        else
+        {
+            sprintBar.color = new Color(1, 1, 1, Mathf.Min(1, sprintBar.color.a + Time.deltaTime * 10));
+            sprintBar3.color = new Color(1, 1, 1, Mathf.Min(0.32f, sprintBar3.color.a + Time.deltaTime * 10));
+
+            float spr = sprintSpline.Evaluate(currentSprintTime / sprintTime);
+            sprintBar.fillAmount = spr;
+            sprintBar2.color = new Color(1, 1, 1, spr);
+        }
+
+
+        //Cam Icons
         if(camsVisible > 0)
         {
             cameraIcon.color = new Color(1, 1, 1, Mathf.Lerp(cameraIcon.color.a, 1, Time.deltaTime*5));
@@ -293,13 +319,43 @@ public class Player : MonoBehaviour
             cameraSpottedIcon.color = new Color(1, 1, 1, Mathf.Lerp(cameraSpottedIcon.color.a, 0, Time.deltaTime*10));
         }
 
-
-
         if (health <= 0)
         {
             playerState = PlayerState.frozenAll;
         }
-    }
+
+        //Take Item
+        string item = playerInteractions.ObjectTaken();
+        if (item != "")
+        {
+            takeItem.SetActive(true);
+            takeItemText.text = item;
+            if(Input.GetKeyDown(KeyCode.Q))
+            {
+                inventory.InsertItem(playerInteractions.lookObject);
+
+            }
+        }
+        else
+        {
+            takeItem.SetActive(false);
+        }
+
+        //Inventory
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            if(inventoryScreen.alpha == 0)
+            {
+                inventoryScreen.alpha = 1;
+                playerState = PlayerState.frozenCamUnlock;
+            }
+            else
+            {
+                inventoryScreen.alpha = 0;
+                playerState = PlayerState.normal;
+            } 
+        }
+}
     void CameraMove(Vector2 axis)
     {
 
@@ -354,10 +410,6 @@ public class Player : MonoBehaviour
         float newy = PlayerCamScript.transform.position.y - this.transform.position.y;
         CharCont.height = Mathf.Max(0.9f,(((newy * (1 / camInitialHeight)) / 2f) + .5f) * 1.3f);
         CharCont.center = new Vector3(0f, Mathf.Max(-0.21f,Remap(newy, feet.transform.localPosition.y, camInitialHeight, feet.transform.localPosition.y, 0)), 0);
-        if(CharCont.height == 0.9f)
-        {
-            Debug.Log(CharCont.center);
-        }
         //Void Bounce
         if (this.transform.position.y < -20)
         {

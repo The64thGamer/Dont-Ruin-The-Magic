@@ -35,6 +35,7 @@ public class Player : MonoBehaviour
     public TMP_Text takeItemText;
     Inventory inventory;
     public CanvasGroup inventoryScreen;
+    AudioSource audsrc;
 
 
     //Position, Movement, Buttons
@@ -85,6 +86,9 @@ public class Player : MonoBehaviour
     public GameObject flashlightBounce;
     public GameObject flashBounceTrack;
 
+    [Range(0, 1)]
+    float flashLightSpam = 0;
+
     [Header("CameraZoom")]
     public bool enableCamZoom;
     float maxFov = 100;
@@ -112,6 +116,8 @@ public class Player : MonoBehaviour
         frozenAll,
         frozenCamUnlock,
         frozenAllUnlock,
+        noInput,
+        noInputUnlock,
     }
 
     //Other
@@ -159,6 +165,7 @@ public class Player : MonoBehaviour
     }
     void Awake()
     {
+        audsrc = this.GetComponent<AudioSource>();
         inventory = this.GetComponent<Inventory>();
         playerInteractions = this.GetComponent<PlayerInteractions>();
         currentSprintTime = sprintTime;
@@ -167,6 +174,8 @@ public class Player : MonoBehaviour
         camHeight = camInitialHeight;
         smoothScroll = PlayerCamScript.fieldOfView;
         Cursor.lockState = CursorLockMode.Locked;
+        inventoryScreen.alpha = 0;
+        playerState = PlayerState.normal;
         //Initialize Variables
         CharCont = GetComponent<CharacterController>();
         gamepad = new Controller();
@@ -202,8 +211,15 @@ public class Player : MonoBehaviour
         //Joystick
         JoyStickCheck();
 
-        //Cam Crouch Code
-        PlayerCamScript.transform.localPosition = new Vector3(PlayerCamScript.transform.localPosition.x, Mathf.Lerp(PlayerCamScript.transform.localPosition.y, camHeight, Time.deltaTime * 5), PlayerCamScript.transform.localPosition.z);
+        //No Input
+        if (playerState == PlayerState.noInput || playerState == PlayerState.noInputUnlock)
+        {
+            CStick = Vector2.zero;
+            JoyStick = Vector2.zero;
+        }
+
+            //Cam Crouch Code
+            PlayerCamScript.transform.localPosition = new Vector3(PlayerCamScript.transform.localPosition.x, Mathf.Lerp(PlayerCamScript.transform.localPosition.y, camHeight, Time.deltaTime * 5), PlayerCamScript.transform.localPosition.z);
 
         //Camera Code
         if (playerState != PlayerState.frozenCam && playerState != PlayerState.frozenAll && playerState != PlayerState.frozenAllUnlock && playerState != PlayerState.frozenCamUnlock && playerInteractions.PickupCheck())
@@ -260,13 +276,13 @@ public class Player : MonoBehaviour
         switch (Cursor.lockState)
         {
             case CursorLockMode.None:
-                if (playerState != PlayerState.frozenAllUnlock && playerState != PlayerState.frozenCamUnlock)
+                if (playerState != PlayerState.frozenAllUnlock && playerState != PlayerState.frozenCamUnlock && playerState != PlayerState.noInputUnlock)
                 {
                     Cursor.lockState = CursorLockMode.Locked;
                 }
                 break;
             case CursorLockMode.Locked:
-                if (playerState == PlayerState.frozenAllUnlock || playerState == PlayerState.frozenCamUnlock)
+                if (playerState == PlayerState.frozenAllUnlock || playerState == PlayerState.frozenCamUnlock || playerState == PlayerState.noInputUnlock)
                 {
                     Cursor.lockState = CursorLockMode.None;
                 }
@@ -284,9 +300,9 @@ public class Player : MonoBehaviour
         healthBar2.color = new Color(1, 1, 1, hlth);
 
         //Sprint
-        if(currentSprintTime == sprintTime)
+        if (currentSprintTime == sprintTime)
         {
-            sprintBar.color = new Color(1, 1, 1, Mathf.Max(0,sprintBar.color.a - Time.deltaTime * 10));
+            sprintBar.color = new Color(1, 1, 1, Mathf.Max(0, sprintBar.color.a - Time.deltaTime * 10));
             sprintBar2.color = new Color(1, 1, 1, Mathf.Max(0, sprintBar2.color.a - Time.deltaTime * 10));
             sprintBar3.color = new Color(1, 1, 1, Mathf.Max(0, sprintBar3.color.a - Time.deltaTime * 10));
         }
@@ -302,21 +318,21 @@ public class Player : MonoBehaviour
 
 
         //Cam Icons
-        if(camsVisible > 0)
+        if (camsVisible > 0)
         {
-            cameraIcon.color = new Color(1, 1, 1, Mathf.Lerp(cameraIcon.color.a, 1, Time.deltaTime*5));
+            cameraIcon.color = new Color(1, 1, 1, Mathf.Lerp(cameraIcon.color.a, 1, Time.deltaTime * 5));
         }
         else
         {
-            cameraIcon.color = new Color(1, 1, 1, Mathf.Lerp(cameraIcon.color.a, 0, Time.deltaTime*10));
+            cameraIcon.color = new Color(1, 1, 1, Mathf.Lerp(cameraIcon.color.a, 0, Time.deltaTime * 10));
         }
         if (camsSpotted > 0)
         {
-            cameraSpottedIcon.color = new Color(1, 1, 1, Mathf.Lerp(cameraSpottedIcon.color.a, 1, Time.deltaTime*5));
+            cameraSpottedIcon.color = new Color(1, 1, 1, Mathf.Lerp(cameraSpottedIcon.color.a, 1, Time.deltaTime * 5));
         }
         else
         {
-            cameraSpottedIcon.color = new Color(1, 1, 1, Mathf.Lerp(cameraSpottedIcon.color.a, 0, Time.deltaTime*10));
+            cameraSpottedIcon.color = new Color(1, 1, 1, Mathf.Lerp(cameraSpottedIcon.color.a, 0, Time.deltaTime * 10));
         }
 
         if (health <= 0)
@@ -326,14 +342,16 @@ public class Player : MonoBehaviour
 
         //Take Item
         string item = playerInteractions.ObjectTaken();
-        if (item != "")
+        if (item != "" && inventoryScreen.alpha == 0)
         {
             takeItem.SetActive(true);
             takeItemText.text = item;
-            if(Input.GetKeyDown(KeyCode.Q))
+            if (Input.GetKeyDown(KeyCode.Q))
             {
-                inventory.InsertItem(playerInteractions.lookObject);
-
+                if(inventory.InsertItem(playerInteractions.lookObject))
+                {
+                    Destroy(playerInteractions.lookObject);
+                }
             }
         }
         else
@@ -342,20 +360,20 @@ public class Player : MonoBehaviour
         }
 
         //Inventory
-        if (Input.GetKeyDown(KeyCode.Escape))
+        if (Input.GetKeyDown(KeyCode.Tab))
         {
-            if(inventoryScreen.alpha == 0)
+            if (inventoryScreen.alpha == 0)
             {
                 inventoryScreen.alpha = 1;
-                playerState = PlayerState.frozenCamUnlock;
+                playerState = PlayerState.noInputUnlock;
             }
             else
             {
                 inventoryScreen.alpha = 0;
                 playerState = PlayerState.normal;
-            } 
+            }
         }
-}
+    }
     void CameraMove(Vector2 axis)
     {
 
@@ -408,8 +426,8 @@ public class Player : MonoBehaviour
     public void MovePlayer(Vector2 axis, bool sprint)
     {
         float newy = PlayerCamScript.transform.position.y - this.transform.position.y;
-        CharCont.height = Mathf.Max(0.9f,(((newy * (1 / camInitialHeight)) / 2f) + .5f) * 1.3f);
-        CharCont.center = new Vector3(0f, Mathf.Max(-0.21f,Remap(newy, feet.transform.localPosition.y, camInitialHeight, feet.transform.localPosition.y, 0)), 0);
+        CharCont.height = Mathf.Max(0.9f, (((newy * (1 / camInitialHeight)) / 2f) + .5f) * 1.3f);
+        CharCont.center = new Vector3(0f, Mathf.Max(-0.21f, Remap(newy, feet.transform.localPosition.y, camInitialHeight, feet.transform.localPosition.y, 0)), 0);
         //Void Bounce
         if (this.transform.position.y < -20)
         {
@@ -430,13 +448,13 @@ public class Player : MonoBehaviour
             {
                 if (crouchBool)
                 {
-                    nowSpeed += sprintSpeed * (currentSprintTime / sprintTime)/2.0f;
+                    nowSpeed += sprintSpeed * (currentSprintTime / sprintTime) / 2.0f;
                 }
                 else
                 {
                     nowSpeed += sprintSpeed * (currentSprintTime / sprintTime);
                 }
-                    
+
                 sprintCrouchFOVAdder = Mathf.Min(currentSprintTime / sprintTime * 2, 1) * 12;
                 if (CharCont.velocity.magnitude > 0.1f)
                 {
@@ -477,7 +495,7 @@ public class Player : MonoBehaviour
                     camBobAdder = -fallHeight * 6.0f;
                     camBobFader = 0;
                 }
-                if(fallHeight < -3.0)
+                if (fallHeight < -3.0)
                 {
                     health += fallHeight * 0.04f;
                 }
@@ -583,12 +601,108 @@ public class Player : MonoBehaviour
 
     void FlashlightCheck()
     {
+        flashLightSpam = Mathf.Max(0, flashLightSpam - (Time.deltaTime / 5.0f));
         if (!inWater)
         {
             if ((Input.GetKeyDown(KeyCode.E) && controlType == ControllerType.keyboard) || (flashGamepad && controlType == ControllerType.gamepad))
             {
                 flashGamepad = false;
+                flashLightSpam = Mathf.Min(1, flashLightSpam + 0.15f);
                 flashlight.SetActive(!flashlight.activeSelf);
+
+                if (flashLightSpam < 0.3f)
+                {
+                    if (flashlight.activeSelf)
+                    {
+                        switch (UnityEngine.Random.Range(0, 2))
+                        {
+                            case 0:
+                                audsrc.PlayOneShot(Resources.Load<AudioClip>("Sounds/Flash_On Sp0 a"));
+                                break;
+                            case 1:
+                                audsrc.PlayOneShot(Resources.Load<AudioClip>("Sounds/Flash_On Sp0 b"));
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        switch (UnityEngine.Random.Range(0, 2))
+                        {
+                            case 0:
+                                audsrc.PlayOneShot(Resources.Load<AudioClip>("Sounds/Flash_Off Sp0 a"));
+                                break;
+                            case 1:
+                                audsrc.PlayOneShot(Resources.Load<AudioClip>("Sounds/Flash_Off Sp0 b"));
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+                else if (flashLightSpam > 0.3f && flashLightSpam < 0.6f)
+                {
+                    if (flashlight.activeSelf)
+                    {
+                        switch (UnityEngine.Random.Range(0, 2))
+                        {
+                            case 0:
+                                audsrc.PlayOneShot(Resources.Load<AudioClip>("Sounds/Flash_On Sp1 a"));
+                                break;
+                            case 1:
+                                audsrc.PlayOneShot(Resources.Load<AudioClip>("Sounds/Flash_On Sp1 b"));
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        switch (UnityEngine.Random.Range(0, 2))
+                        {
+                            case 0:
+                                audsrc.PlayOneShot(Resources.Load<AudioClip>("Sounds/Flash_Off Sp1 a"));
+                                break;
+                            case 1:
+                                audsrc.PlayOneShot(Resources.Load<AudioClip>("Sounds/Flash_Off Sp1 b"));
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+                else if (flashLightSpam > 0.6f)
+                {
+                    if (flashlight.activeSelf)
+                    {
+                        switch (UnityEngine.Random.Range(0, 2))
+                        {
+                            case 0:
+                                audsrc.PlayOneShot(Resources.Load<AudioClip>("Sounds/Flash_On Sp2 a"));
+                                break;
+                            case 1:
+                                audsrc.PlayOneShot(Resources.Load<AudioClip>("Sounds/Flash_On Sp2 b"));
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        switch (UnityEngine.Random.Range(0, 2))
+                        {
+                            case 0:
+                                audsrc.PlayOneShot(Resources.Load<AudioClip>("Sounds/Flash_Off Sp2 a"));
+                                break;
+                            case 1:
+                                audsrc.PlayOneShot(Resources.Load<AudioClip>("Sounds/Flash_Off Sp2 b"));
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
             }
         }
         else
@@ -598,7 +712,7 @@ public class Player : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(flashlight.transform.position, flashlight.transform.forward, out hit, 6.5f))
         {
-            flashBounceTrack.transform.position = hit.point + new Vector3(0,0.1f,0);
+            flashBounceTrack.transform.position = hit.point + new Vector3(0, 0.1f, 0);
             flashBounceTrack.transform.localPosition -= new Vector3(0, 0, hit.distance / 5.0f);
         }
         else
@@ -714,7 +828,7 @@ public class Player : MonoBehaviour
 
     public void PingCamera(Transform origin, bool spotted)
     {
-        if(spotted)
+        if (spotted)
         {
             GameObject tracer = GameObject.Instantiate(camTracer, camTracer.transform.parent);
             tracer.SetActive(true);

@@ -93,9 +93,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   name: Debug Item
-  icon: Debug
-  weightGrams: 468.18
-  color: {r: 0.6226415, g: 0.6226415, b: 0.6226415, a: 1}
+  group: 0
+  sound: 2
 --- !u!65 &4902458116112927818
 BoxCollider:
   m_ObjectHideFlags: 0

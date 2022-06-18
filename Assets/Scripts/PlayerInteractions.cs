@@ -117,6 +117,7 @@ public class PlayerInteractions : MonoBehaviour
             physicsObject.pickedUp = false;
         }
         currentDist = 0;
+        pickupRB = null;
     }
 
     private void PickUpObject()

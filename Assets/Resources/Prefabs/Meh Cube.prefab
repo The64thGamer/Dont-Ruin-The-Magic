@@ -93,9 +93,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   name: Meh Cube
-  icon: Debug
-  weightGrams: 200
-  color: {r: 0.41037738, g: 1, b: 0.44578424, a: 1}
+  group: 0
+  sound: 1
 --- !u!65 &2020100039303525140
 BoxCollider:
   m_ObjectHideFlags: 0

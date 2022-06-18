@@ -5,18 +5,30 @@ using UnityEngine;
 public class ItemInit : MonoBehaviour
 {
     public string name;
-    public string icon;
-    public float weightGrams;
-    public Color color;
+    public ItemGroup group;
+    public enum ItemGroup
+    {
+        buildables,
+        resources,
+        tools,
+        keyItems,
+    }
+    public SoundGroup sound;
+    public enum SoundGroup
+    {
+        small,
+        medium,
+        large,
+        huge,
+    }
     StatTags stats;
 
     void Awake()
     {
         stats = this.GetComponent<StatTags>();
         SetTagInit("Name", name);
-        SetTagInit("Icon", icon);
-        SetTagInit("Weight", weightGrams.ToString());
-        SetTagInit("Color", ColorUtility.ToHtmlStringRGB(color));
+        SetTagInit("ItemGroup", group.ToString());
+        SetTagInit("SoundGroup", sound.ToString());
         Destroy(this.GetComponent<ItemInit>());
     }
 

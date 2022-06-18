@@ -93,9 +93,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   name: Sphere Bot 90kThousand
-  icon: Debug
-  weightGrams: 400
-  color: {r: 1, g: 0, b: 0, a: 1}
+  group: 0
+  sound: 3
 --- !u!135 &7166558651312776126
 SphereCollider:
   m_ObjectHideFlags: 0

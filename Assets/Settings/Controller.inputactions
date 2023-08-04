@@ -11,7 +11,8 @@
                     "id": "a7ee3cc7-a2a5-4d6f-af4c-5c934384994b",
                     "expectedControlType": "Axis",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": true
                 },
                 {
                     "name": "Cam Horizontal",
@@ -19,7 +20,8 @@
                     "id": "4e98ee38-0bf5-4a94-aa5a-262b6c7f9a07",
                     "expectedControlType": "Axis",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": true
                 },
                 {
                     "name": "Jump",
@@ -27,7 +29,8 @@
                     "id": "6dcdec06-d787-4a7b-afa8-ab4a53ab88e5",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Click",
@@ -35,7 +38,8 @@
                     "id": "e2ecc1bb-fac1-4812-9687-fe07ef855cfe",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Run",
@@ -43,7 +47,8 @@
                     "id": "7e64be53-a0f6-4e41-9bc8-02ef2e04115b",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Horizontal",
@@ -51,7 +56,8 @@
                     "id": "09888f07-105a-403b-9406-344a63ad3eae",
                     "expectedControlType": "Axis",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": true
                 },
                 {
                     "name": "Vertical",
@@ -59,15 +65,8 @@
                     "id": "16c45b21-e775-4b99-b62a-9c90908e476b",
                     "expectedControlType": "Axis",
                     "processors": "",
-                    "interactions": ""
-                },
-                {
-                    "name": "Flashlight",
-                    "type": "Button",
-                    "id": "38a2b8ba-8fce-4f5c-a749-b7308b927779",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": true
                 },
                 {
                     "name": "Crouch",
@@ -75,7 +74,8 @@
                     "id": "54474c75-b116-45f7-b067-d0c8c57a49ad",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Hold",
@@ -83,7 +83,8 @@
                     "id": "6855fdd7-ec1f-46f0-a9b0-1a5d6b8eca70",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
                 },
                 {
                     "name": "Zoom",
@@ -91,7 +92,8 @@
                     "id": "eb783a19-2969-4ee8-a860-55edad397242",
                     "expectedControlType": "Axis",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": true
                 },
                 {
                     "name": "Flash Zoom",
@@ -99,7 +101,8 @@
                     "id": "fa185041-f83a-4c3d-981f-e04e59808451",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": ""
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -148,6 +151,39 @@
                     "isPartOfComposite": false
                 },
                 {
+                    "name": "1D Axis",
+                    "id": "40b8f4cc-398c-4682-8d56-6030c2f59946",
+                    "path": "1DAxis",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Cam Vertical",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "negative",
+                    "id": "f19701a8-fa74-42aa-9585-f201d3fa3912",
+                    "path": "<Mouse>/delta/up",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Cam Vertical",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "positive",
+                    "id": "e3cb8732-a653-4628-b1d6-91eb906c8ada",
+                    "path": "<Mouse>/delta/down",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Cam Vertical",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
                     "name": "",
                     "id": "94d102b2-9363-4cca-8551-8f6defd0c7f6",
                     "path": "<HID::Performance Designed Products Wired Fight Pad Pro for Nintendo Switch>/z",
@@ -192,6 +228,39 @@
                     "isPartOfComposite": false
                 },
                 {
+                    "name": "1D Axis",
+                    "id": "2a17da7d-4d83-42eb-ba6a-7b2616d358aa",
+                    "path": "1DAxis",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Cam Horizontal",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "negative",
+                    "id": "296b805a-573f-4bce-bab6-40d60a798e28",
+                    "path": "<Mouse>/delta/left",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Cam Horizontal",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "positive",
+                    "id": "01dd4c36-94ec-4ecf-b005-3144834806bd",
+                    "path": "<Mouse>/delta/right",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Cam Horizontal",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
                     "name": "",
                     "id": "af53f2a1-b13b-435b-9bbc-ce7857cf6987",
                     "path": "<HID::Performance Designed Products Wired Fight Pad Pro for Nintendo Switch>/button2",
@@ -228,6 +297,17 @@
                     "name": "",
                     "id": "928ea0fb-4776-4412-b313-ec5088dcabfc",
                     "path": "<Gamepad>/buttonEast",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Jump",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "d4eb31e8-02a5-445a-8c60-14e2e5d5bad4",
+                    "path": "<Keyboard>/space",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -325,6 +405,17 @@
                 },
                 {
                     "name": "",
+                    "id": "a9c7f309-bbf5-4fc2-97b8-ad85211c00ca",
+                    "path": "<Keyboard>/shift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Run",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
                     "id": "33f9ff92-2b13-4039-8d76-73c1992085d1",
                     "path": "<Joystick>/stick/x",
                     "interactions": "",
@@ -366,6 +457,39 @@
                     "action": "Horizontal",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "1D Axis",
+                    "id": "0b14e972-9511-48ff-ae3a-110148e76f62",
+                    "path": "1DAxis",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Horizontal",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "negative",
+                    "id": "cf7aa58d-c1b1-4676-b27a-d65f473150fe",
+                    "path": "<Keyboard>/a",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Horizontal",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "positive",
+                    "id": "8f65ac52-9db2-41f2-a59a-0acaa8957d5c",
+                    "path": "<Keyboard>/d",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Horizontal",
+                    "isComposite": false,
+                    "isPartOfComposite": true
                 },
                 {
                     "name": "",
@@ -412,48 +536,37 @@
                     "isPartOfComposite": false
                 },
                 {
-                    "name": "",
-                    "id": "551da6a2-8fbb-4627-bf29-cdc5caf2f1e2",
-                    "path": "<Gamepad>/buttonNorth",
+                    "name": "1D Axis",
+                    "id": "4fb2dda1-cc58-4ef0-9b73-1f672792aafa",
+                    "path": "1DAxis",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Flashlight",
-                    "isComposite": false,
+                    "action": "Vertical",
+                    "isComposite": true,
                     "isPartOfComposite": false
                 },
                 {
-                    "name": "",
-                    "id": "2156efc2-d1af-4fa0-b26a-c74a74960983",
-                    "path": "<HID::Performance Designed Products Wired Fight Pad Pro for Nintendo Switch>/trigger",
+                    "name": "negative",
+                    "id": "44bd31a0-35f0-451a-a398-f9ab98befd75",
+                    "path": "<Keyboard>/s",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Flashlight",
+                    "action": "Vertical",
                     "isComposite": false,
-                    "isPartOfComposite": false
+                    "isPartOfComposite": true
                 },
                 {
-                    "name": "",
-                    "id": "d4e8206e-4602-482d-ab92-08f9d2666504",
-                    "path": "<DualShockGamepad>/buttonNorth",
+                    "name": "positive",
+                    "id": "115bc35d-bb2b-45b4-b5d9-419cb11d1253",
+                    "path": "<Keyboard>/w",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Flashlight",
+                    "action": "Vertical",
                     "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "acffdba9-3a3a-4c3e-a107-b082703ba028",
-                    "path": "<Gamepad>/buttonNorth",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Flashlight",
-                    "isComposite": false,
-                    "isPartOfComposite": false
+                    "isPartOfComposite": true
                 },
                 {
                     "name": "",
@@ -492,6 +605,17 @@
                     "name": "",
                     "id": "389fbfca-ef63-48f5-ae47-60f54fd730c0",
                     "path": "<Gamepad>/leftStickPress",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Crouch",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "bfd40aaa-4adf-4067-bd1e-720209950bb8",
+                    "path": "<Keyboard>/q",
                     "interactions": "",
                     "processors": "",
                     "groups": "",

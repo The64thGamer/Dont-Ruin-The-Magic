@@ -50,7 +50,7 @@ public class SecurityCam : MonoBehaviour
                         float finalColor = CheckPlayerColor();
 
                         //If True
-                        if (finalColor < maxPlayerLight && !player.flashlight.activeSelf)
+                        if (finalColor < maxPlayerLight)
                         {
                             isTracking = false;
                             player.UnPingCamera(true);
@@ -82,7 +82,7 @@ public class SecurityCam : MonoBehaviour
                         float finalColor = CheckPlayerColor();
 
                         //If True
-                        if (finalColor > maxPlayerLight || player.flashlight.activeSelf)
+                        if (finalColor > maxPlayerLight)
                         {
                             isTracking = true;
                             player.PingCamera(this.transform,true);

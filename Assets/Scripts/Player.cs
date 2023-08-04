@@ -22,6 +22,7 @@ public class Player : MonoBehaviour
     [Header("Initial")]
     //Attatched Objects
     public Camera PlayerCamScript;
+    public Transform camTransform;
     public Image sprintBar;
     public Image sprintBar2;
     public Image sprintBar3;
@@ -55,18 +56,20 @@ public class Player : MonoBehaviour
     public float fallMovementHinderance = 0;
     public int camsSpotted = 0;
     public int camsVisible = 0;
+    public float camAccelSetting = 1;
 
     [Header("Speed")]
-    float baseSpeed = 2f;
-    float crouchSpeed = 1f;
-    float sprintSpeed = 4f;
+    float baseSpeed = 3f;
+    float crouchSpeed = 1.5f;
+    float sprintSpeed = 6f;
     float sprintTime = 4.0f;
     public float currentSprintTime;
 
     [Header("Jump")]
     public bool enableJump;
     float gravity = 15;
-    float jumpSpeed = 4f;
+    float jumpSpeed = 5f;
+    float crouchJumpSpeed = 6f;
     float airControl = 0.7f;
     float airTurnSpeed = 1.5f;
     public float coyoteTime = 0;
@@ -79,12 +82,6 @@ public class Player : MonoBehaviour
     float camCrouchHeight = -0.2f;
     public GameObject feet;
     public GameObject unCrouch;
-
-    [Header("Flashlight")]
-    public bool enableFlashlight;
-    public GameObject flashlight;
-    public GameObject flashlightBounce;
-    public GameObject flashBounceTrack;
 
     [Range(0, 1)]
     float flashLightSpam = 0;
@@ -104,6 +101,9 @@ public class Player : MonoBehaviour
     public float smoothSpeed;
     public float maxVeclocity;
     Vector2 camAcceleration;
+
+    [Header("Guns")]
+    public GameObject[] guns;
 
     [Header("PlayerState")]
     public PlayerState playerState;
@@ -137,7 +137,6 @@ public class Player : MonoBehaviour
     [SerializeField]
     private Controller gamepad;
     [Header("Gamepad")]
-    public ControllerType controlType;
     private bool clickGamepad = false;
     private bool jumpGamepad = false;
     private bool crouchGamepad = false;
@@ -148,11 +147,6 @@ public class Player : MonoBehaviour
     public Vector2 GPCam;
     public Vector2 GPZoom;
 
-    public enum ControllerType
-    {
-        keyboard,
-        gamepad,
-    }
     void OnEnable()
     {
         Cursor.lockState = CursorLockMode.Locked;
@@ -172,7 +166,10 @@ public class Player : MonoBehaviour
         initialFallHeight = this.transform.position.y;
         DontDestroyOnLoad(this.gameObject);
         camHeight = camInitialHeight;
-        smoothScroll = PlayerCamScript.fieldOfView;
+        if (PlayerCamScript != null)
+        {
+            smoothScroll = PlayerCamScript.fieldOfView;
+        }
         Cursor.lockState = CursorLockMode.Locked;
         inventoryScreen.alpha = 0;
         playerState = PlayerState.normal;
@@ -183,8 +180,6 @@ public class Player : MonoBehaviour
         gamepad.Gamepad.Click.performed += ctx => clickGamepad = true;
         gamepad.Gamepad.Jump.canceled += ctx => jumpGamepad = false;
         gamepad.Gamepad.Jump.performed += ctx => jumpGamepad = true;
-        gamepad.Gamepad.Flashlight.canceled += ctx => flashGamepad = false;
-        gamepad.Gamepad.Flashlight.started += ctx => flashGamepad = true;
         gamepad.Gamepad.Run.canceled += ctx => runGamepad = false;
         gamepad.Gamepad.Run.performed += ctx => runGamepad = true;
         gamepad.Gamepad.Crouch.canceled += ctx => crouchGamepad = false;
@@ -205,9 +200,8 @@ public class Player : MonoBehaviour
         gamepad.Gamepad.CamVertical.canceled += ctx => GPCam.y = 0;
     }
 
-    void Update()
+    public void UpdateMovement(GlobalManager.playerInputs input)
     {
-
         //Joystick
         JoyStickCheck();
 
@@ -218,8 +212,8 @@ public class Player : MonoBehaviour
             JoyStick = Vector2.zero;
         }
 
-            //Cam Crouch Code
-            PlayerCamScript.transform.localPosition = new Vector3(PlayerCamScript.transform.localPosition.x, Mathf.Lerp(PlayerCamScript.transform.localPosition.y, camHeight, Time.deltaTime * 5), PlayerCamScript.transform.localPosition.z);
+        //Cam Crouch Code
+        PlayerCamScript.transform.localPosition = new Vector3(PlayerCamScript.transform.localPosition.x, Mathf.Lerp(PlayerCamScript.transform.localPosition.y, camHeight, Time.deltaTime * 5), PlayerCamScript.transform.localPosition.z);
 
         //Camera Code
         if (playerState != PlayerState.frozenCam && playerState != PlayerState.frozenAll && playerState != PlayerState.frozenAllUnlock && playerState != PlayerState.frozenCamUnlock && playerInteractions.PickupCheck())
@@ -236,14 +230,8 @@ public class Player : MonoBehaviour
             //Camera
             if (camMove)
             {
-                CameraMove(CStick);
+                CameraMove(input.cam);
             }
-        }
-
-        //Flashlight
-        if (enableFlashlight)
-        {
-            FlashlightCheck();
         }
 
         //Body Code
@@ -252,7 +240,7 @@ public class Player : MonoBehaviour
             //Jump
             if (!inWater)
             {
-                if (enableJump && ((Input.GetKey(KeyCode.Space) && controlType == ControllerType.keyboard) || (jumpGamepad && controlType == ControllerType.gamepad)))
+                if (enableJump && (jumpGamepad))
                 {
                     JumpBool++;
                     UncrouchCheck();
@@ -265,12 +253,12 @@ public class Player : MonoBehaviour
             //Crouch
             if (enableCrouch)
             {
-                CrouchCheck();
+                CrouchCheck(input);
             }
 
 
             //Move
-            MovePlayer(JoyStick, false);
+            MovePlayer(input.movement);
         }
 
         switch (Cursor.lockState)
@@ -346,9 +334,9 @@ public class Player : MonoBehaviour
         {
             takeItem.SetActive(true);
             takeItemText.text = item;
-            if (Input.GetKeyDown(KeyCode.Q))
+            if (Input.GetKeyDown(KeyCode.E))
             {
-                if(inventory.InsertItem(playerInteractions.lookObject))
+                if (inventory.InsertItem(playerInteractions.lookObject))
                 {
                     Destroy(playerInteractions.lookObject);
                 }
@@ -360,7 +348,7 @@ public class Player : MonoBehaviour
         }
 
         //Inventory
-        if (Input.GetKeyDown(KeyCode.Tab))
+        if (Input.GetKeyDown(KeyCode.Z))
         {
             if (inventoryScreen.alpha == 0)
             {
@@ -408,24 +396,25 @@ public class Player : MonoBehaviour
             }
             camAcceleration.x = Mathf.Max(Mathf.Min(camAcceleration.x, maxVeclocity), -maxVeclocity);
             camAcceleration.y = Mathf.Max(Mathf.Min(camAcceleration.y, maxVeclocity), -maxVeclocity);
-            camXRotation += camAcceleration.x / 100f;
-            camYRotation += camAcceleration.y / 100f;
+            camXRotation += camAcceleration.x / 100f * camAccelSetting;
+            camYRotation += camAcceleration.y / 100f * camAccelSetting;
         }
         else
         {
-            camXRotation += axis.x;
-            camYRotation += axis.y;
+            camXRotation += axis.x * camAccelSetting;
+            camYRotation -= axis.y * camAccelSetting;
         }
         camBobFader = Mathf.Min(camBobFader + (Time.deltaTime * 25), 1);
         camBobAdder = Mathf.Max(camBobAdder - (Time.deltaTime * 10), 0);
         camYRotation = Mathf.Clamp(camYRotation, -85, 85);
 
-
-        PlayerCamScript.transform.eulerAngles = new Vector3(Mathf.Clamp(camYRotation + (camBobAdder * camBobFader), -85, 85), PlayerCamScript.transform.eulerAngles.y, PlayerCamScript.transform.eulerAngles.z);
         transform.eulerAngles = new Vector3(transform.eulerAngles.x, camXRotation, transform.eulerAngles.z);
+        PlayerCamScript.transform.position = camTransform.position;
+        PlayerCamScript.transform.eulerAngles = new Vector3(Mathf.Clamp(camYRotation + (camBobAdder * camBobFader), -85, 85), transform.eulerAngles.y, PlayerCamScript.transform.eulerAngles.z);
+
     }
 
-    public void MovePlayer(Vector2 axis, bool sprint)
+    public void MovePlayer(Vector2 axis)
     {
         float newy = PlayerCamScript.transform.position.y - this.transform.position.y;
         CharCont.height = Mathf.Max(0.9f, (((newy * (1 / camInitialHeight)) / 2f) + .5f) * 1.3f);
@@ -444,7 +433,7 @@ public class Player : MonoBehaviour
             nowSpeed = crouchSpeed;
         }
         //Sprint
-        if (((Input.GetKey(KeyCode.LeftShift) && controlType == ControllerType.keyboard) || (runGamepad && controlType == ControllerType.gamepad)) || sprint && !crouchBool)
+        if (runGamepad)
         {
             if (currentSprintTime > 0)
             {
@@ -522,7 +511,14 @@ public class Player : MonoBehaviour
             //Jumping
             if (JumpBool == 1)
             {
-                moveDirection.y = jumpSpeed;
+                if (crouchBool)
+                {
+                    moveDirection.y = crouchJumpSpeed;
+                }
+                else
+                {
+                    moveDirection.y = jumpSpeed;
+                }
                 coyoteTime = 0;
             }
         }
@@ -575,163 +571,24 @@ public class Player : MonoBehaviour
 
     bool mouseCheck()
     {
-        switch (controlType)
+        if (clickGamepad)
         {
-            case ControllerType.keyboard:
-                if (Input.GetMouseButton(0))
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            case ControllerType.gamepad:
-                if (clickGamepad)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            default:
-                break;
-        }
-        return false;
-    }
-
-    void FlashlightCheck()
-    {
-        flashLightSpam = Mathf.Max(0, flashLightSpam - (Time.deltaTime / 5.0f));
-        if (!inWater)
-        {
-            if ((Input.GetKeyDown(KeyCode.E) && controlType == ControllerType.keyboard) || (flashGamepad && controlType == ControllerType.gamepad))
-            {
-                flashGamepad = false;
-                flashLightSpam = Mathf.Min(1, flashLightSpam + 0.15f);
-                flashlight.SetActive(!flashlight.activeSelf);
-
-                if (flashLightSpam < 0.3f)
-                {
-                    if (flashlight.activeSelf)
-                    {
-                        switch (UnityEngine.Random.Range(0, 2))
-                        {
-                            case 0:
-                                audsrc.PlayOneShot(Resources.Load<AudioClip>("Sounds/Flash_On Sp0 a"));
-                                break;
-                            case 1:
-                                audsrc.PlayOneShot(Resources.Load<AudioClip>("Sounds/Flash_On Sp0 b"));
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        switch (UnityEngine.Random.Range(0, 2))
-                        {
-                            case 0:
-                                audsrc.PlayOneShot(Resources.Load<AudioClip>("Sounds/Flash_Off Sp0 a"));
-                                break;
-                            case 1:
-                                audsrc.PlayOneShot(Resources.Load<AudioClip>("Sounds/Flash_Off Sp0 b"));
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                }
-                else if (flashLightSpam > 0.3f && flashLightSpam < 0.6f)
-                {
-                    if (flashlight.activeSelf)
-                    {
-                        switch (UnityEngine.Random.Range(0, 2))
-                        {
-                            case 0:
-                                audsrc.PlayOneShot(Resources.Load<AudioClip>("Sounds/Flash_On Sp1 a"));
-                                break;
-                            case 1:
-                                audsrc.PlayOneShot(Resources.Load<AudioClip>("Sounds/Flash_On Sp1 b"));
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        switch (UnityEngine.Random.Range(0, 2))
-                        {
-                            case 0:
-                                audsrc.PlayOneShot(Resources.Load<AudioClip>("Sounds/Flash_Off Sp1 a"));
-                                break;
-                            case 1:
-                                audsrc.PlayOneShot(Resources.Load<AudioClip>("Sounds/Flash_Off Sp1 b"));
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                }
-                else if (flashLightSpam > 0.6f)
-                {
-                    if (flashlight.activeSelf)
-                    {
-                        switch (UnityEngine.Random.Range(0, 2))
-                        {
-                            case 0:
-                                audsrc.PlayOneShot(Resources.Load<AudioClip>("Sounds/Flash_On Sp2 a"));
-                                break;
-                            case 1:
-                                audsrc.PlayOneShot(Resources.Load<AudioClip>("Sounds/Flash_On Sp2 b"));
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                    else
-                    {
-                        switch (UnityEngine.Random.Range(0, 2))
-                        {
-                            case 0:
-                                audsrc.PlayOneShot(Resources.Load<AudioClip>("Sounds/Flash_Off Sp2 a"));
-                                break;
-                            case 1:
-                                audsrc.PlayOneShot(Resources.Load<AudioClip>("Sounds/Flash_Off Sp2 b"));
-                                break;
-                            default:
-                                break;
-                        }
-                    }
-                }
-            }
+            return true;
         }
         else
         {
-            flashlight.SetActive(false);
+            return false;
         }
-        RaycastHit hit;
-        if (Physics.Raycast(flashlight.transform.position, flashlight.transform.forward, out hit, 6.5f))
-        {
-            flashBounceTrack.transform.position = hit.point + new Vector3(0, 0.1f, 0);
-            flashBounceTrack.transform.localPosition -= new Vector3(0, 0, hit.distance / 5.0f);
-        }
-        else
-        {
-            flashBounceTrack.transform.localPosition = new Vector3(0, 0, 6.5f);
-        }
-        flashlightBounce.transform.localPosition = new Vector3(flashBounceTrack.transform.localPosition.x, flashBounceTrack.transform.localPosition.y, flashlightBounce.transform.localPosition.z);
-        flashlightBounce.transform.position = Vector3.MoveTowards(flashlightBounce.transform.position, flashBounceTrack.transform.position, Time.deltaTime * 5);
     }
 
-    void CrouchCheck()
+
+    void CrouchCheck(GlobalManager.playerInputs input)
     {
         if (CharCont.isGrounded)
         {
             if (!inWater)
             {
-                if ((Input.GetKey(KeyCode.LeftControl) != crouchBool && controlType == ControllerType.keyboard) || (crouchGamepad != crouchBool && controlType == ControllerType.gamepad))
+                if (Convert.ToBoolean(input.crouch) != crouchBool)
                 {
                     crouchBool = !crouchBool;
                     if (!crouchBool)
@@ -766,37 +623,8 @@ public class Player : MonoBehaviour
 
     void JoyStickCheck()
     {
-        CStick = Vector2.zero;
-        JoyStick = Vector2.zero;
-        switch (controlType)
-        {
-            case ControllerType.keyboard:
-                if (Input.GetKey(KeyCode.UpArrow) || Input.GetKey(KeyCode.W))
-                {
-                    JoyStick.y += 1.0f;
-                }
-                if (Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.A))
-                {
-                    JoyStick.x -= 1.0f;
-                }
-                if (Input.GetKey(KeyCode.DownArrow) || Input.GetKey(KeyCode.S))
-                {
-                    JoyStick.y -= 1.0f;
-                }
-                if (Input.GetKey(KeyCode.RightArrow) || Input.GetKey(KeyCode.D))
-                {
-                    JoyStick.x += 1.0f;
-                }
-                CStick.x = Input.GetAxis("Mouse X") * 1.5f;
-                CStick.y = Input.GetAxis("Mouse Y") * -1.5f;
-                break;
-            case ControllerType.gamepad:
-                JoyStick = GPJoy;
-                CStick = GPCam * 2;
-                break;
-            default:
-                break;
-        }
+        JoyStick = GPJoy;
+        CStick = GPCam * 2;
         //Anims
         JoyStick = JoyStick.normalized;
     }
@@ -804,27 +632,8 @@ public class Player : MonoBehaviour
 
     void CamZoomCheck()
     {
-        if (controlType == ControllerType.keyboard)
-        {
-            if (!Input.GetKey(KeyCode.LeftAlt))
-            {
-                if (Input.GetAxis("Mouse ScrollWheel") != 0)
-                {
-                    timedelta = 0;
-                }
-                else
-                {
-                    timedelta += Time.deltaTime;
-                }
-                smoothScroll += Input.GetAxis("Mouse ScrollWheel") * 25f;
-                smoothScroll = Mathf.Clamp(smoothScroll, minFov, maxFov);
-            }
-        }
-        else
-        {
-            smoothScroll += GPZoom.x;
-            smoothScroll = Mathf.Clamp(smoothScroll, minFov, maxFov);
-        }
+        smoothScroll += GPZoom.x;
+        smoothScroll = Mathf.Clamp(smoothScroll, minFov, maxFov);
         currentFOV = Mathf.Lerp(currentFOV, smoothScroll, Time.deltaTime * 5);
     }
 

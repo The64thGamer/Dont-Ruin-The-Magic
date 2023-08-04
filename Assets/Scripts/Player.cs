@@ -366,11 +366,13 @@ public class Player : MonoBehaviour
             {
                 inventoryScreen.alpha = 1;
                 playerState = PlayerState.noInputUnlock;
+                inventory.DropDraggingItem(true);
             }
             else
             {
                 inventoryScreen.alpha = 0;
                 playerState = PlayerState.normal;
+                inventory.DropDraggingItem(true);
             }
         }
     }
